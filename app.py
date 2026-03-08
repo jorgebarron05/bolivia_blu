@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
 import plotly.graph_objects as go
@@ -23,9 +22,7 @@ STRINGS = {
         "from_bob": "← BOB",
         "amount_label": "Cantidad",
         "blue_rate_label": "Tipo de cambio blue (USD → BOB)",
-        "blue_override": "Sobreescribir tipo de cambio blue",
         "official_rate_info": "Tipo de cambio oficial",
-        "blue_rate_info": "Tipo de cambio blue (paralelo)",
         "last_updated": "Actualizado",
         "results_header": "📊 Resultados",
         "official_value": "Valor oficial",
@@ -41,7 +38,6 @@ STRINGS = {
         "blue_label": "Blue",
         "loading": "Cargando datos...",
         "error_rate": "No se pudo obtener el tipo de cambio oficial. Usando valor predeterminado.",
-        "error_blue": "No se pudo obtener el tipo de cambio blue. Ingresalo manualmente.",
         "footer": "Tipo de cambio oficial vía fawazahmed0/exchange-api · Tipo de cambio blue es referencial.",
         "lang_toggle": "English",
     },
@@ -54,9 +50,7 @@ STRINGS = {
         "from_bob": "← BOB",
         "amount_label": "Amount",
         "blue_rate_label": "Blue rate (USD → BOB)",
-        "blue_override": "Override blue rate",
         "official_rate_info": "Official exchange rate",
-        "blue_rate_info": "Blue (parallel) rate",
         "last_updated": "Updated",
         "results_header": "📊 Results",
         "official_value": "Official value",
@@ -72,7 +66,6 @@ STRINGS = {
         "blue_label": "Blue",
         "loading": "Loading data...",
         "error_rate": "Could not fetch official rate. Using default value.",
-        "error_blue": "Could not fetch blue rate. Enter it manually.",
         "footer": "Official rate via fawazahmed0/exchange-api · Blue rate is indicative only.",
         "lang_toggle": "Español",
     },
@@ -119,25 +112,6 @@ def get_rate(base: str, date: str = "latest") -> float:
     return None
 
 
-@st.cache_data(ttl=3600)
-def get_blue_rate() -> float | None:
-    """Try to scrape Bolivia's parallel (blue) USD rate."""
-    try:
-        url = "https://www.bcb.gob.bo/libreConvertibilidad/index.php"
-        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=5)
-        soup = BeautifulSoup(r.text, "html.parser")
-        # Look for a rate value near 9-12 range as sanity check
-        for tag in soup.find_all(string=True):
-            text = tag.strip().replace(",", ".")
-            try:
-                val = float(text)
-                if 8.0 < val < 20.0:
-                    return val
-            except ValueError:
-                continue
-    except Exception:
-        pass
-    return None
 
 
 @st.cache_data(ttl=86400)
@@ -190,23 +164,12 @@ if official_rate is None:
     st.warning(T["error_rate"])
     official_rate = 6.96 if currency == "usd" else 7.50
 
-fetched_blue = get_blue_rate()
-
-col_a, col_b = st.columns(2)
-with col_a:
-    st.metric(T["official_rate_info"], f"{official_rate:,.4f} BOB")
-with col_b:
-    st.metric(T["blue_rate_info"], f"{fetched_blue:,.4f} BOB" if fetched_blue else "—")
-
-# Blue rate override
-blue_default = fetched_blue if fetched_blue else 9.00
-if fetched_blue is None:
-    st.warning(T["error_blue"])
+st.metric(T["official_rate_info"], f"{official_rate:,.4f} BOB")
 
 blue_rate = st.number_input(
-    T["blue_override"] if fetched_blue else T["blue_rate_label"],
+    T["blue_rate_label"],
     min_value=0.0,
-    value=float(f"{blue_default:.2f}"),
+    value=9.00,
     step=0.10,
     format="%.2f",
 )
@@ -220,12 +183,10 @@ st.subheader(T["results_header"])
 if direction == "to_bob":
     official_out = amount * official_rate
     blue_out = amount * blue_rate
-    in_unit = CURRENCY_LABELS[currency]
     out_unit = "BOB"
 else:
     official_out = amount / official_rate if official_rate else 0
     blue_out = amount / blue_rate if blue_rate else 0
-    in_unit = "BOB"
     out_unit = CURRENCY_LABELS[currency]
 
 difference = blue_out - official_out

@@ -1,0 +1,14 @@
+{
+  "name": "Bolivia Blu",
+  "short_name": "Bolivia Blu",
+  "description": "Hub financiero para mover dinero en Bolivia",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066CC",
+  "lang": "es",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

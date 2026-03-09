@@ -1,4 +1,5 @@
-streamlit
+streamlit>=1.33
 requests
 pandas
 plotly
+sentry-sdk

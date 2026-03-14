@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+  }
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+    font-family: Inter, system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .rate-up   { @apply text-green-600 dark:text-green-400; }
+  .rate-down { @apply text-red-600 dark:text-red-400; }
+  .rate-same { @apply text-gray-500; }
+}
